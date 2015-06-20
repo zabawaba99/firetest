@@ -3,7 +3,7 @@ package firetest
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -29,6 +29,10 @@ func NewFiretest() *Firetest {
 	return &Firetest{
 		db: newTree(),
 	}
+}
+
+func sanitizePath(p string) string {
+	return strings.Trim(p, "/")
 }
 
 // Start starts the server
@@ -79,17 +83,20 @@ func (ft *Firetest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
-	var n node
-
-	if err := json.NewDecoder(req.Body).Decode(&n); err != nil {
-		msg := []byte(invalidJSON)
-		if err == io.EOF {
-			msg = []byte(missingBody)
-		}
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(msg)
+		w.Write([]byte(missingBody))
 		return
 	}
 
-	// switch
+	var n node
+	if err := json.Unmarshal(body, &n); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(invalidJSON))
+		return
+	}
+
+	ft.db.add(sanitizePath(req.URL.Path), &n)
+	w.Write(body)
 }

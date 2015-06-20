@@ -79,13 +79,17 @@ func TestSet(t *testing.T) {
 	require.NoError(t, ft.Start())
 
 	path := "foo"
-	body := "bar"
+	body := `"bar"`
 	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/%s.json", ft.URL, path), strings.NewReader(body))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
 	ft.set(resp, req)
 
 	// TODO
+	assert.Equal(t, http.StatusOK, resp.Code)
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, body, string(respBody))
 
 }
 
