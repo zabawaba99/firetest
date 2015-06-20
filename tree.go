@@ -35,7 +35,7 @@ func newNode(data interface{}) *node {
 	return n
 }
 
-func (n *node) UnmarshallJSON(b []byte) error {
+func (n *node) UnmarshalJSON(b []byte) error {
 	var v interface{}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
