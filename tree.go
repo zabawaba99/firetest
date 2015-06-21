@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 )
 
 type node struct {
-	value    interface{}
-	children map[string]*node
+	value     interface{}
+	children  map[string]*node
+	sliceKids bool
 }
 
 func newNode(data interface{}) *node {
@@ -22,6 +24,7 @@ func newNode(data interface{}) *node {
 			n.children[k] = child
 		}
 	case []interface{}:
+		n.sliceKids = true
 		for i, v := range data {
 			child := newNode(v)
 			n.children[fmt.Sprint(i)] = child
@@ -42,6 +45,34 @@ func (n *node) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+func (n *node) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.objectify())
+}
+
+func (n *node) objectify() interface{} {
+	if n.value != nil {
+		return n.value
+	}
+
+	if n.sliceKids {
+		obj := make([]interface{}, len(n.children))
+		for k, v := range n.children {
+			index, err := strconv.Atoi(k)
+			if err != nil {
+				continue
+			}
+			obj[index] = v.objectify()
+		}
+		return obj
+	}
+
+	obj := map[string]interface{}{}
+	for k, v := range n.children {
+		obj[k] = v.objectify()
+	}
+	return obj
 }
 
 type treeDB struct {
@@ -79,4 +110,18 @@ func (tree *treeDB) add(path string, n *node) {
 
 	lastPath := rabbitHole[len(rabbitHole)-1]
 	previous.children[lastPath] = n
+}
+
+func (tree *treeDB) get(path string) (current *node) {
+	current = tree.rootNode
+
+	rabbitHole := strings.Split(path, "/")
+	for i := 0; i < len(rabbitHole); i++ {
+		var ok bool
+		current, ok = current.children[rabbitHole[i]]
+		if !ok {
+			return nil
+		}
+	}
+	return current
 }

@@ -11,13 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newTestNode(v interface{}) *node {
-	return &node{
-		value:    v,
-		children: map[string]*node{},
-	}
-}
-
 func newTestNodeWithKids(children map[string]*node) *node {
 	return &node{
 		children: children,
@@ -58,63 +51,49 @@ func TestNewNode(t *testing.T) {
 	}{
 		{
 			name: "scalars/string",
-			node: newTestNode("foo"),
+			node: newNode("foo"),
 		},
 		{
 			name: "scalars/number",
-			node: newTestNode(2),
+			node: newNode(2),
 		},
 		{
 			name: "scalars/decimal",
-			node: newTestNode(2.2),
+			node: newNode(2.2),
 		},
 		{
 			name: "scalars/boolean",
-			node: newTestNode(false),
+			node: newNode(false),
 		},
 		{
 			name: "arrays/strings",
-			node: newTestNodeWithKids(map[string]*node{
-				"0": newTestNode("foo"),
-				"1": newTestNode("bar"),
-			}),
+			node: newNode([]interface{}{"foo", "bar"}),
 		},
 		{
 			name: "arrays/booleans",
-			node: newTestNodeWithKids(map[string]*node{
-				"0": newTestNode(true),
-				"1": newTestNode(false),
-			}),
+			node: newNode([]interface{}{true, false}),
 		},
 		{
 			name: "arrays/numbers",
-			node: newTestNodeWithKids(map[string]*node{
-				"0": newTestNode(1),
-				"1": newTestNode(2),
-				"2": newTestNode(3),
-			}),
+			node: newNode([]interface{}{1, 2, 3}),
 		},
 		{
 			name: "arrays/decimals",
-			node: newTestNodeWithKids(map[string]*node{
-				"0": newTestNode(1.1),
-				"1": newTestNode(2.2),
-				"2": newTestNode(3.3),
-			}),
+			node: newNode([]interface{}{1.1, 2.2, 3.3}),
 		},
 		{
 			name: "objects/simple",
 			node: newTestNodeWithKids(map[string]*node{
-				"foo": newTestNode("bar"),
+				"foo": newNode("bar"),
 			}),
 		},
 		{
 			name: "objects/complex",
 			node: newTestNodeWithKids(map[string]*node{
-				"foo":  newTestNode("bar"),
-				"foo1": newTestNode(2),
-				"foo2": newTestNode(true),
-				"foo3": newTestNode(3.42),
+				"foo":  newNode("bar"),
+				"foo1": newNode(2),
+				"foo2": newNode(true),
+				"foo3": newNode(3.42),
 			}),
 		},
 		{
@@ -122,48 +101,36 @@ func TestNewNode(t *testing.T) {
 			node: newTestNodeWithKids(map[string]*node{
 				"dinosaurs": newTestNodeWithKids(map[string]*node{
 					"bruhathkayosaurus": newTestNodeWithKids(map[string]*node{
-						"appeared": newTestNode(-70000000),
-						"height":   newTestNode(25),
-						"length":   newTestNode(44),
-						"order":    newTestNode("saurischia"),
-						"vanished": newTestNode(-70000000),
-						"weight":   newTestNode(135000),
+						"appeared": newNode(-70000000),
+						"height":   newNode(25),
+						"length":   newNode(44),
+						"order":    newNode("saurischia"),
+						"vanished": newNode(-70000000),
+						"weight":   newNode(135000),
 					}),
 					"lambeosaurus": newTestNodeWithKids(map[string]*node{
-						"appeared": newTestNode(-76000000),
-						"height":   newTestNode(2.1),
-						"length":   newTestNode(12.5),
-						"order":    newTestNode("ornithischia"),
-						"vanished": newTestNode(-75000000),
-						"weight":   newTestNode(5000),
+						"appeared": newNode(-76000000),
+						"height":   newNode(2.1),
+						"length":   newNode(12.5),
+						"order":    newNode("ornithischia"),
+						"vanished": newNode(-75000000),
+						"weight":   newNode(5000),
 					}),
 				}),
 				"scores": newTestNodeWithKids(map[string]*node{
-					"bruhathkayosaurus": newTestNode(55),
-					"lambeosaurus":      newTestNode(21),
+					"bruhathkayosaurus": newNode(55),
+					"lambeosaurus":      newNode(21),
 				}),
 			}),
 		},
 		{
 			name: "objects/with_arrays",
 			node: newTestNodeWithKids(map[string]*node{
-				"regular": newTestNode("item"),
-				"booleans": newTestNodeWithKids(map[string]*node{
-					"0": newTestNode(false),
-					"1": newTestNode(true),
-				}),
-				"numbers": newTestNodeWithKids(map[string]*node{
-					"0": newTestNode(1),
-					"1": newTestNode(2),
-				}),
-				"decimals": newTestNodeWithKids(map[string]*node{
-					"0": newTestNode(1.1),
-					"1": newTestNode(2.2),
-				}),
-				"strings": newTestNodeWithKids(map[string]*node{
-					"0": newTestNode("foo"),
-					"1": newTestNode("bar"),
-				}),
+				"regular":  newNode("item"),
+				"booleans": newNode([]interface{}{false, true}),
+				"numbers":  newNode([]interface{}{1, 2}),
+				"decimals": newNode([]interface{}{1.1, 2.2}),
+				"strings":  newNode([]interface{}{"foo", "bar"}),
 			}),
 		},
 	} {
@@ -178,6 +145,50 @@ func TestNewNode(t *testing.T) {
 	}
 }
 
+func TestObjectify(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		object interface{}
+		node   *node
+	}{
+		{
+			name:   "string",
+			object: "foo",
+		},
+		{
+			name:   "number",
+			object: 2,
+		},
+		{
+			name:   "decimal",
+			object: 2.2,
+		},
+		{
+			name:   "boolean",
+			object: false,
+		},
+		{
+			name:   "arrays",
+			object: []interface{}{"foo", 2, 2.2, false},
+		},
+		{
+			name: "object",
+			object: map[string]interface{}{
+				"one_fish":     "two_fish",
+				"red_fish":     2.2,
+				"netflix_list": []interface{}{"Orange is the New Black", "House of Cards"},
+				"shopping_list": map[string]interface{}{
+					"publix":  "milk",
+					"walmart": "reese's pieces",
+				},
+			},
+		},
+	} {
+		node := newNode(test.object)
+		assert.Equal(t, test.object, node.objectify())
+	}
+}
+
 func TestTreeAdd(t *testing.T) {
 	for _, test := range []struct {
 		path string
@@ -185,14 +196,11 @@ func TestTreeAdd(t *testing.T) {
 	}{
 		{
 			path: "scalars/string",
-			node: newTestNode("foo"),
+			node: newNode("foo"),
 		},
 		{
 			path: "s/c/a/l/a/r/s/s/t/r/i/n/g",
-			node: newTestNodeWithKids(map[string]*node{
-				"0": newTestNode("foo"),
-				"1": newTestNode("bar"),
-			}),
+			node: newNode([]interface{}{"foo", "bar"}),
 		},
 	} {
 		tree := newTree()
@@ -208,5 +216,25 @@ func TestTreeAdd(t *testing.T) {
 
 		assert.NoError(t, equalNodes(test.node, previous), test.path)
 	}
+}
 
+func TestTreeGet(t *testing.T) {
+	for _, test := range []struct {
+		path string
+		node *node
+	}{
+		{
+			path: "scalars/string",
+			node: newNode("foo"),
+		},
+		{
+			path: "s/c/a/l/a/r/s/s/t/r/i/n/g",
+			node: newNode([]interface{}{"foo", "bar"}),
+		},
+	} {
+		tree := newTree()
+		tree.add(test.path, test.node)
+
+		assert.NoError(t, equalNodes(test.node, tree.get(test.path)), test.path)
+	}
 }

@@ -32,7 +32,8 @@ func NewFiretest() *Firetest {
 }
 
 func sanitizePath(p string) string {
-	return strings.Trim(p, "/")
+	s := strings.Trim(p, "/")
+	return strings.TrimSuffix(s, ".json")
 }
 
 // Start starts the server
@@ -77,6 +78,8 @@ func (ft *Firetest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "PUT":
 		ft.set(w, req)
+	case "GET":
+		ft.get(w, req)
 	default:
 		log.Println("not implemented yet")
 	}
@@ -99,4 +102,13 @@ func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
 
 	ft.db.add(sanitizePath(req.URL.Path), &n)
 	w.Write(body)
+}
+
+func (ft *Firetest) get(w http.ResponseWriter, req *http.Request) {
+	n := ft.db.get(sanitizePath(req.URL.Path))
+	w.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(n); err != nil {
+		log.Printf("Error encoding json: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
