@@ -77,6 +77,13 @@ func (n *node) objectify() interface{} {
 	return obj
 }
 
+func (n *node) merge(newNode *node) {
+	for k, v := range newNode.children {
+		n.children[k] = v
+	}
+	n.value = newNode.value
+}
+
 func (n *node) prune() *node {
 	if len(n.children) > 0 || n.value != nil {
 		return nil

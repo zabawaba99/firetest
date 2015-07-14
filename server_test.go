@@ -103,6 +103,33 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, body, string(respBody))
 }
 
+func TestPatch(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	require.NoError(t, ft.Start())
+
+	path := "some/awesome/path"
+	body := map[string]interface{}{
+		"foo":  "bar",
+		"fooy": true,
+		"bar":  []interface{}{false, "lolz"},
+	}
+	ft.db.add(path, newNode(body))
+
+	// ACT
+	newVal := `"notbar"`
+	req, err := http.NewRequest("PATCH", ft.URL+"/some/awesome/path/foo.json", strings.NewReader(newVal))
+	require.NoError(t, err)
+	resp := httptest.NewRecorder()
+	ft.set(resp, req)
+
+	// ASSERT
+	assert.Equal(t, http.StatusOK, resp.Code)
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, newVal, string(respBody))
+}
+
 func TestSet_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()

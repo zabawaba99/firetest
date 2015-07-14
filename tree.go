@@ -41,6 +41,28 @@ func (tree *treeDB) add(path string, n *node) {
 	n.parent = current
 }
 
+func (tree *treeDB) update(path string, n *node) {
+	current := tree.rootNode
+	rabbitHole := strings.Split(path, "/")
+
+	for i := 0; i < len(rabbitHole); i++ {
+		path := rabbitHole[i]
+		if path == "" {
+			// prevent against empty strings due to strings.Split
+			continue
+		}
+		next, ok := current.children[path]
+		if !ok {
+			next = &node{parent: current, children: map[string]*node{}}
+			current.children[path] = next
+		}
+		next.value = nil // no long has a value since it now has a child
+		current, next = next, nil
+	}
+
+	current.merge(n)
+}
+
 func (tree *treeDB) del(path string) {
 	if path == "" {
 		tree.rootNode = &node{

@@ -78,6 +78,8 @@ func (ft *Firetest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "PUT":
 		ft.set(w, req)
+	case "PATCH":
+		ft.update(w, req)
 	case "GET":
 		ft.get(w, req)
 	case "DELETE":
@@ -104,6 +106,25 @@ func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ft.db.add(sanitizePath(req.URL.Path), &n)
+	w.Write(body)
+}
+
+func (ft *Firetest) update(w http.ResponseWriter, req *http.Request) {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(missingBody))
+		return
+	}
+
+	var n node
+	if err := json.Unmarshal(body, &n); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(invalidJSON))
+		return
+	}
+
+	ft.db.update(sanitizePath(req.URL.Path), &n)
 	w.Write(body)
 }
 
