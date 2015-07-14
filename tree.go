@@ -21,26 +21,24 @@ func (tree *treeDB) add(path string, n *node) {
 	}
 
 	rabbitHole := strings.Split(path, "/")
-	previous := tree.rootNode
-	var current *node
+	current := tree.rootNode
 	for i := 0; i < len(rabbitHole)-1; i++ {
 		step := rabbitHole[i]
-		var ok bool
-		current, ok = previous.children[step]
+		next, ok := current.children[step]
 		if !ok {
-			current = &node{
-				parent:   previous,
+			next = &node{
+				parent:   current,
 				children: map[string]*node{},
 			}
-			previous.children[step] = current
+			current.children[step] = next
 		}
-		current.value = nil // no long has a value since it now has a child
-		previous, current = current, nil
+		next.value = nil // no long has a value since it now has a child
+		current, next = next, nil
 	}
 
 	lastPath := rabbitHole[len(rabbitHole)-1]
-	previous.children[lastPath] = n
-	n.parent = previous
+	current.children[lastPath] = n
+	n.parent = current
 }
 
 func (tree *treeDB) del(path string) {

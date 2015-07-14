@@ -24,7 +24,7 @@ type Firetest struct {
 	db       *treeDB
 }
 
-// NewFiretest creates a new Firetest server
+// New creates a new Firetest server
 func New() *Firetest {
 	return &Firetest{
 		db: newTree(),
