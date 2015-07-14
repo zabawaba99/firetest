@@ -80,8 +80,11 @@ func (tree *treeDB) del(path string) {
 	}
 }
 
-func (tree *treeDB) get(path string) (current *node) {
-	current = tree.rootNode
+func (tree *treeDB) get(path string) *node {
+	current := tree.rootNode
+	if path == "" {
+		return current
+	}
 
 	rabbitHole := strings.Split(path, "/")
 	for i := 0; i < len(rabbitHole); i++ {

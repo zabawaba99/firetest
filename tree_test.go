@@ -76,4 +76,11 @@ func TestTreeDel(t *testing.T) {
 	n := tree.get("root/only")
 	require.NotNil(t, n)
 	assert.Len(t, n.children, 2)
+	_, exists := n.children["one"]
+	assert.False(t, exists)
+
+	tree.del("root")
+	n = tree.get("")
+	require.NotNil(t, n)
+	assert.Len(t, n.children, 0)
 }
