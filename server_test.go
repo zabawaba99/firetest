@@ -16,13 +16,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewFiretest(t *testing.T) {
-	ft := NewFiretest()
+func TestNew(t *testing.T) {
+	ft := New()
 	assert.NotNil(t, ft)
 }
 
 func TestURL(t *testing.T) {
-	ft := NewFiretest()
+	ft := New()
 	assert.NoError(t, ft.Start())
 	assert.Regexp(t, regexp.MustCompile(`https?://127.0.0.1:\d+`), ft.URL)
 
@@ -31,7 +31,7 @@ func TestURL(t *testing.T) {
 
 func TestClose(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	// ACT
@@ -44,7 +44,7 @@ func TestClose(t *testing.T) {
 }
 
 func TestCloseFailure(t *testing.T) {
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	assert.NoError(t, ft.Close())
@@ -53,7 +53,7 @@ func TestCloseFailure(t *testing.T) {
 
 func TestServeHTTP(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	// ACT
@@ -68,7 +68,7 @@ func TestServeHTTP(t *testing.T) {
 
 func TestServeHTTP_MissingJSON(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	// ACT
@@ -86,7 +86,7 @@ func TestServeHTTP_MissingJSON(t *testing.T) {
 
 func TestSet(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	// ACT
@@ -105,7 +105,7 @@ func TestSet(t *testing.T) {
 
 func TestSet_NoBody(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	// ACT
@@ -123,7 +123,7 @@ func TestSet_NoBody(t *testing.T) {
 
 func TestSet_InvalidBody(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	// ACT
@@ -141,7 +141,7 @@ func TestSet_InvalidBody(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	// ARRANGE
-	ft := NewFiretest()
+	ft := New()
 	require.NoError(t, ft.Start())
 
 	path := "some/awesome/path"
