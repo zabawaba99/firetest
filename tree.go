@@ -28,15 +28,56 @@ func (tree *treeDB) add(path string, n *node) {
 		var ok bool
 		current, ok = previous.children[step]
 		if !ok {
-			current = &node{children: map[string]*node{}}
+			current = &node{
+				parent:   previous,
+				children: map[string]*node{},
+			}
 			previous.children[step] = current
 		}
-
+		current.value = nil // no long has a value since it now has a child
 		previous, current = current, nil
 	}
 
 	lastPath := rabbitHole[len(rabbitHole)-1]
 	previous.children[lastPath] = n
+	n.parent = previous
+}
+
+func (tree *treeDB) del(path string) {
+	if path == "" {
+		tree.rootNode = &node{
+			children: map[string]*node{},
+		}
+		return
+	}
+
+	rabbitHole := strings.Split(path, "/")
+	current := tree.rootNode
+
+	// traverse to target node's parent
+	var delIdx int
+	for ; delIdx < len(rabbitHole)-1; delIdx++ {
+		next, ok := current.children[rabbitHole[delIdx]]
+		if !ok {
+			// item does not exist, no need to do anything
+			return
+		}
+
+		current = next
+	}
+
+	endNode := current
+	leafPath := rabbitHole[len(rabbitHole)-1]
+	delete(endNode.children, leafPath)
+
+	for tmp := endNode.prune(); tmp != nil; tmp = tmp.prune() {
+		delIdx--
+		endNode = tmp
+	}
+
+	if endNode != nil {
+		delete(endNode.children, rabbitHole[delIdx])
+	}
 }
 
 func (tree *treeDB) get(path string) (current *node) {

@@ -80,7 +80,10 @@ func (ft *Firetest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		ft.set(w, req)
 	case "GET":
 		ft.get(w, req)
+	case "DELETE":
+		ft.del(w, req)
 	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		log.Println("not implemented yet")
 	}
 }
@@ -102,6 +105,10 @@ func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
 
 	ft.db.add(sanitizePath(req.URL.Path), &n)
 	w.Write(body)
+}
+
+func (ft *Firetest) del(w http.ResponseWriter, req *http.Request) {
+	ft.db.del(sanitizePath(req.URL.Path))
 }
 
 func (ft *Firetest) get(w http.ResponseWriter, req *http.Request) {

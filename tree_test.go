@@ -238,3 +238,23 @@ func TestTreeGet(t *testing.T) {
 		assert.NoError(t, equalNodes(test.node, tree.get(test.path)), test.path)
 	}
 }
+
+func TestTreeDel(t *testing.T) {
+	existingNodes := []string{
+		"root/only/two",
+		"root/only/three",
+		"root/only/one/child/here",
+	}
+	tree := newTree()
+	for _, p := range existingNodes {
+		tree.add(p, newNode(1))
+	}
+
+	tree.del("root/only/one/child")
+	assert.Nil(t, tree.get("root/only/one/child/here"))
+	assert.Nil(t, tree.get("root/only/one/child"))
+	assert.Nil(t, tree.get("root/only/one"))
+	n := tree.get("root/only")
+	require.NotNil(t, n)
+	assert.Len(t, n.children, 2)
+}
