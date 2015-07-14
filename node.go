@@ -21,12 +21,14 @@ func newNode(data interface{}) *node {
 	case map[string]interface{}:
 		for k, v := range data {
 			child := newNode(v)
+			child.parent = n
 			n.children[k] = child
 		}
 	case []interface{}:
 		n.sliceKids = true
 		for i, v := range data {
 			child := newNode(v)
+			child.parent = n
 			n.children[fmt.Sprint(i)] = child
 		}
 	case string, int, int8, int16, int32, int64, float32, float64, bool:
@@ -76,7 +78,7 @@ func (n *node) objectify() interface{} {
 }
 
 func (n *node) prune() *node {
-	if len(n.children) > 1 {
+	if len(n.children) > 0 || n.value != nil {
 		return nil
 	}
 	n.children = nil
