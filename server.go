@@ -71,8 +71,6 @@ func (ft *Firetest) Close() error {
 }
 
 func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
-	log.Printf("Got request: %s %s\n", req.Method, req.URL.String())
-
 	if !strings.HasSuffix(req.URL.String(), ".json") {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(missingJSONExtension))
