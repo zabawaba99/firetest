@@ -48,7 +48,9 @@ func (ft *Firetest) Start() error {
 	}
 	ft.listener = l
 
-	s := http.Server{Handler: ft}
+	s := http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		ft.serveHTTP(w, req)
+	})}
 	go func() {
 		if err := s.Serve(l); err != nil {
 			log.Printf("error serving: %s", err)
@@ -68,7 +70,7 @@ func (ft *Firetest) Close() error {
 	return nil
 }
 
-func (ft *Firetest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Printf("Got request: %s %s\n", req.Method, req.URL.String())
 
 	if !strings.HasSuffix(req.URL.String(), ".json") {

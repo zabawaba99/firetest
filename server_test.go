@@ -60,7 +60,7 @@ func TestServeHTTP(t *testing.T) {
 	req, err := http.NewRequest("GET", ft.URL+"/.json", nil)
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -75,7 +75,7 @@ func TestServeHTTP_MissingJSON(t *testing.T) {
 	req, err := http.NewRequest("GET", ft.URL, nil)
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusForbidden, resp.Code)
@@ -94,7 +94,7 @@ func TestCreate(t *testing.T) {
 	req, err := http.NewRequest("POST", ft.URL+"/foo.json", strings.NewReader(body))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -117,7 +117,7 @@ func TestCreate_NoBody(t *testing.T) {
 	req, err := http.NewRequest("POST", ft.URL+"/foo.json", bytes.NewReader(nil))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -135,7 +135,7 @@ func TestCreate_InvalidBody(t *testing.T) {
 	req, err := http.NewRequest("POST", ft.URL+"/foo.json", strings.NewReader("{asd}"))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -154,7 +154,7 @@ func TestSet(t *testing.T) {
 	req, err := http.NewRequest("PUT", ft.URL+"/foo.json", strings.NewReader(body))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -172,7 +172,7 @@ func TestSet_NoBody(t *testing.T) {
 	req, err := http.NewRequest("PUT", ft.URL+"/.json", bytes.NewReader(nil))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -190,7 +190,7 @@ func TestSet_InvalidBody(t *testing.T) {
 	req, err := http.NewRequest("PUT", ft.URL+"/.json", strings.NewReader("{asd}"))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -212,7 +212,7 @@ func TestDel(t *testing.T) {
 	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -238,7 +238,7 @@ func TestUpdate(t *testing.T) {
 	req, err := http.NewRequest("PATCH", ft.URL+"/some/awesome/path/foo.json", strings.NewReader(newVal))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -256,7 +256,7 @@ func TestUpdate_NoBody(t *testing.T) {
 	req, err := http.NewRequest("PATCH", ft.URL+"/.json", bytes.NewReader(nil))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -274,7 +274,7 @@ func TestUpdate_InvalidBody(t *testing.T) {
 	req, err := http.NewRequest("PATCH", ft.URL+"/.json", strings.NewReader("{asd}"))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -303,7 +303,7 @@ func TestGet(t *testing.T) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%s.json", ft.URL, path), bytes.NewReader(b))
 	require.NoError(t, err)
 	resp := httptest.NewRecorder()
-	ft.ServeHTTP(resp, req)
+	ft.serveHTTP(resp, req)
 
 	// ASSERT
 	assert.Equal(t, http.StatusOK, resp.Code)
