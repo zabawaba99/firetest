@@ -1,3 +1,7 @@
+/*
+Package firetest provides utilities for Firebase testing
+
+*/
 package firetest
 
 import (
@@ -20,6 +24,7 @@ const (
 
 // Firetest is a Firebase server implementation
 type Firetest struct {
+	// URL of form http://ipaddr:port with no trailing slash
 	URL string
 
 	listener net.Listener
@@ -146,8 +151,8 @@ func (ft *Firetest) create(w http.ResponseWriter, req *http.Request) {
 	}
 
 	src := []byte(fmt.Sprint(time.Now().UnixNano()))
-	name := base32.StdEncoding.EncodeToString(src)
-	path := fmt.Sprintf("%s/~%s", sanitizePath(req.URL.Path), name)
+	name := "~" + base32.StdEncoding.EncodeToString(src)
+	path := fmt.Sprintf("%s/%s", sanitizePath(req.URL.Path), name)
 	ft.db.add(path, &n)
 
 	rtn := map[string]string{"name": name}
