@@ -1,6 +1,7 @@
 package firetest
 
 import (
+	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -80,6 +82,8 @@ func (ft *Firetest) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		ft.set(w, req)
 	case "PATCH":
 		ft.update(w, req)
+	case "POST":
+		ft.create(w, req)
 	case "GET":
 		ft.get(w, req)
 	case "DELETE":
@@ -126,6 +130,33 @@ func (ft *Firetest) update(w http.ResponseWriter, req *http.Request) {
 
 	ft.db.update(sanitizePath(req.URL.Path), &n)
 	w.Write(body)
+}
+
+func (ft *Firetest) create(w http.ResponseWriter, req *http.Request) {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil || len(body) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(missingBody))
+		return
+	}
+
+	var n node
+	if err := json.Unmarshal(body, &n); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(invalidJSON))
+		return
+	}
+
+	src := []byte(fmt.Sprint(time.Now().UnixNano()))
+	name := base32.StdEncoding.EncodeToString(src)
+	path := fmt.Sprintf("%s/~%s", sanitizePath(req.URL.Path), name)
+	ft.db.add(path, &n)
+
+	rtn := map[string]string{"name": name}
+	if err := json.NewEncoder(w).Encode(rtn); err != nil {
+		log.Printf("Error encoding json: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (ft *Firetest) del(w http.ResponseWriter, req *http.Request) {

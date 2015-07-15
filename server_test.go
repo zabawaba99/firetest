@@ -84,6 +84,66 @@ func TestServeHTTP_MissingJSON(t *testing.T) {
 	assert.Equal(t, missingJSONExtension, string(b))
 }
 
+func TestCreate(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	require.NoError(t, ft.Start())
+
+	// ACT
+	body := `"bar"`
+	req, err := http.NewRequest("POST", ft.URL+"/foo.json", strings.NewReader(body))
+	require.NoError(t, err)
+	resp := httptest.NewRecorder()
+	ft.ServeHTTP(resp, req)
+
+	// ASSERT
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var v map[string]string
+	err = json.NewDecoder(resp.Body).Decode(&v)
+	require.NoError(t, err)
+
+	name, ok := v["name"]
+	assert.True(t, ok)
+	assert.NotEmpty(t, name)
+}
+
+func TestCreate_NoBody(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	require.NoError(t, ft.Start())
+
+	// ACT
+	req, err := http.NewRequest("POST", ft.URL+"/foo.json", bytes.NewReader(nil))
+	require.NoError(t, err)
+	resp := httptest.NewRecorder()
+	ft.ServeHTTP(resp, req)
+
+	// ASSERT
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	b, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, missingBody, string(b))
+}
+
+func TestCreate_InvalidBody(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	require.NoError(t, ft.Start())
+
+	// ACT
+	req, err := http.NewRequest("POST", ft.URL+"/foo.json", strings.NewReader("{asd}"))
+	require.NoError(t, err)
+	resp := httptest.NewRecorder()
+	ft.ServeHTTP(resp, req)
+
+	// ASSERT
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	b, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Equal(t, invalidJSON, string(b))
+}
+
 func TestSet(t *testing.T) {
 	// ARRANGE
 	ft := New()
