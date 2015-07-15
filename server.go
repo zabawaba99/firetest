@@ -39,11 +39,11 @@ func sanitizePath(p string) string {
 }
 
 // Start starts the server
-func (ft *Firetest) Start() error {
+func (ft *Firetest) Start() {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		if l, err = net.Listen("tcp6", "[::1]:0"); err != nil {
-			return fmt.Errorf("failed to listen on a port: %v", err)
+			panic(fmt.Errorf("failed to listen on a port: %v", err))
 		}
 	}
 	ft.listener = l
@@ -56,18 +56,16 @@ func (ft *Firetest) Start() error {
 			log.Printf("error serving: %s", err)
 		}
 
-		// close up shop when this exits
+		ft.Close()
 	}()
 	ft.URL = "http://" + ft.listener.Addr().String()
-	return nil
 }
 
 // Close closes the server
-func (ft *Firetest) Close() error {
+func (ft *Firetest) Close() {
 	if ft.listener != nil {
-		return ft.listener.Close()
+		ft.listener.Close()
 	}
-	return nil
 }
 
 func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {

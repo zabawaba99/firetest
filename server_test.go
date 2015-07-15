@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 
 func TestURL(t *testing.T) {
 	ft := New()
-	assert.NoError(t, ft.Start())
+	ft.Start()
 	assert.Regexp(t, regexp.MustCompile(`https?://127.0.0.1:\d+`), ft.URL)
 
 	ft.Close()
@@ -32,10 +32,10 @@ func TestURL(t *testing.T) {
 func TestClose(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
-	assert.NoError(t, ft.Close())
+	ft.Close()
 
 	// ASSERT
 	_, err := http.Get(ft.URL)
@@ -43,18 +43,10 @@ func TestClose(t *testing.T) {
 	assert.IsType(t, (*url.Error)(nil), err)
 }
 
-func TestCloseFailure(t *testing.T) {
-	ft := New()
-	require.NoError(t, ft.Start())
-
-	assert.NoError(t, ft.Close())
-	assert.Error(t, ft.Close())
-}
-
 func TestServeHTTP(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("GET", ft.URL+"/.json", nil)
@@ -69,7 +61,7 @@ func TestServeHTTP(t *testing.T) {
 func TestServeHTTP_MissingJSON(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("GET", ft.URL, nil)
@@ -87,7 +79,7 @@ func TestServeHTTP_MissingJSON(t *testing.T) {
 func TestCreate(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	body := `"bar"`
@@ -111,7 +103,7 @@ func TestCreate(t *testing.T) {
 func TestCreate_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("POST", ft.URL+"/foo.json", bytes.NewReader(nil))
@@ -129,7 +121,7 @@ func TestCreate_NoBody(t *testing.T) {
 func TestCreate_InvalidBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("POST", ft.URL+"/foo.json", strings.NewReader("{asd}"))
@@ -147,7 +139,7 @@ func TestCreate_InvalidBody(t *testing.T) {
 func TestSet(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	body := `"bar"`
@@ -166,7 +158,7 @@ func TestSet(t *testing.T) {
 func TestSet_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("PUT", ft.URL+"/.json", bytes.NewReader(nil))
@@ -184,7 +176,7 @@ func TestSet_NoBody(t *testing.T) {
 func TestSet_InvalidBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("PUT", ft.URL+"/.json", strings.NewReader("{asd}"))
@@ -202,7 +194,7 @@ func TestSet_InvalidBody(t *testing.T) {
 func TestDel(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 	path := "foo/bar"
 	n := newNode(2)
 	ft.db.add(path, n)
@@ -223,7 +215,7 @@ func TestDel(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	path := "some/awesome/path"
 	body := map[string]interface{}{
@@ -250,7 +242,7 @@ func TestUpdate(t *testing.T) {
 func TestUpdate_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("PATCH", ft.URL+"/.json", bytes.NewReader(nil))
@@ -268,7 +260,7 @@ func TestUpdate_NoBody(t *testing.T) {
 func TestUpdate_InvalidBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	// ACT
 	req, err := http.NewRequest("PATCH", ft.URL+"/.json", strings.NewReader("{asd}"))
@@ -286,7 +278,7 @@ func TestUpdate_InvalidBody(t *testing.T) {
 func TestGet(t *testing.T) {
 	// ARRANGE
 	ft := New()
-	require.NoError(t, ft.Start())
+	ft.Start()
 
 	path := "some/awesome/path"
 	body := map[string]interface{}{
