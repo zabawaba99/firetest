@@ -1,4 +1,4 @@
-# firetest [![Build Status](https://travis-ci.org/zabawaba99/firetest.svg?branch=master)](https://travis-ci.org/zabawaba99/firetest) [![Coverage Status](https://coveralls.io/repos/zabawaba99/firetest/badge.svg?branch=master)](https://coveralls.io/r/zabawaba99/firetest)
+# firetest [![GoDoc](https://godoc.org/github.com/zabawaba99/firetest?status.svg)](https://godoc.org/github.com/zabawaba99/firetest) [![Build Status](https://travis-ci.org/zabawaba99/firetest.svg?branch=master)](https://travis-ci.org/zabawaba99/firetest) [![Coverage Status](https://coveralls.io/repos/zabawaba99/firetest/badge.svg?branch=master)](https://coveralls.io/r/zabawaba99/firetest)
 
 Firebase test server meant for use in unit tests
 
