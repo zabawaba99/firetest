@@ -28,16 +28,6 @@ func Example() {
 
 	log.Printf("Post Resp: %s\n", string(b))
 
-	resp, err = http.Get(ft.URL + "/foo/bar.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	b, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("Get Resp: %s", string(b))
+	v := ft.Get("foo/bar")
+	log.Printf("Value: %v", v)
 }
