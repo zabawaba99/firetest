@@ -3,7 +3,6 @@ package firetest
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 )
 
@@ -24,6 +23,12 @@ func newNode(data interface{}) *node {
 			child.parent = n
 			n.children[k] = child
 		}
+	case map[string]string:
+		for k, v := range data {
+			child := newNode(v)
+			child.parent = n
+			n.children[k] = child
+		}
 	case []interface{}:
 		n.sliceKids = true
 		for i, v := range data {
@@ -34,7 +39,7 @@ func newNode(data interface{}) *node {
 	case string, int, int8, int16, int32, int64, float32, float64, bool:
 		n.value = data
 	default:
-		log.Printf("node - %T %v\n", data, data)
+		panic(fmt.Sprintf("Type(%T) not supported\n", data))
 	}
 
 	return n

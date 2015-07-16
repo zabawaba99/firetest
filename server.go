@@ -5,7 +5,6 @@ Package firetest provides utilities for Firebase testing
 package firetest
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,7 +12,6 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"time"
 )
 
 const (
@@ -97,14 +95,6 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// Set writes data to at the given location.
-// This will overwrite any data at this location and all child locations.
-//
-// Reference https://www.firebase.com/docs/rest/api/#section-put
-func (ft *Firetest) Set(path string, v interface{}) {
-	ft.db.add(sanitizePath(path), newNode(v))
-}
-
 func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil || len(body) == 0 {
@@ -124,23 +114,6 @@ func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
 	w.Write(body)
 }
 
-// Update writes the enumerated children to this the given location.
-// This will overwrite only children enumerated in the "value" parameter
-// and will leave others untouched. Note that the update function is equivalent
-// to calling Set() on the named children; it does not recursively update children
-// if they are objects. Passing null as a value for a child is equivalent to
-// calling remove() on that child.
-//
-// Reference https://www.firebase.com/docs/rest/api/#section-patch
-func (ft *Firetest) Update(path string, v interface{}) {
-	path = sanitizePath(path)
-	if v == nil {
-		ft.db.del(path)
-	} else {
-		ft.db.update(path, newNode(v))
-	}
-}
-
 func (ft *Firetest) update(w http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil || len(body) == 0 {
@@ -157,19 +130,6 @@ func (ft *Firetest) update(w http.ResponseWriter, req *http.Request) {
 	}
 	ft.Update(req.URL.Path, v)
 	w.Write(body)
-}
-
-// Create generates a new child under the given location
-// using a unique name and returns the name
-//
-// Reference https://www.firebase.com/docs/rest/api/#section-post
-func (ft *Firetest) Create(path string, v interface{}) string {
-	src := []byte(fmt.Sprint(time.Now().UnixNano()))
-	name := "~" + base64.StdEncoding.EncodeToString(src)
-	path = fmt.Sprintf("%s/%s", sanitizePath(path), name)
-
-	ft.db.add(path, newNode(v))
-	return name
 }
 
 func (ft *Firetest) create(w http.ResponseWriter, req *http.Request) {
@@ -195,28 +155,8 @@ func (ft *Firetest) create(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// Delete removes the data at the requested location.
-// Any data at child locations will also be deleted.
-//
-// Reference https://www.firebase.com/docs/rest/api/#section-delete
-func (ft *Firetest) Delete(path string) {
-	ft.db.del(sanitizePath(path))
-}
-
 func (ft *Firetest) del(w http.ResponseWriter, req *http.Request) {
 	ft.Delete(req.URL.Path)
-}
-
-// Get retrieves the data and all its children at the
-// requested location
-//
-// Reference https://www.firebase.com/docs/rest/api/#section-get
-func (ft *Firetest) Get(path string) (v interface{}) {
-	n := ft.db.get(sanitizePath(path))
-	if n != nil {
-		v = n.objectify()
-	}
-	return v
 }
 
 func (ft *Firetest) get(w http.ResponseWriter, req *http.Request) {

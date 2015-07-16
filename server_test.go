@@ -76,7 +76,7 @@ func TestServeHTTP_MissingJSON(t *testing.T) {
 	assert.Equal(t, missingJSONExtension, string(b))
 }
 
-func TestCreate(t *testing.T) {
+func TestServerCreate(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -100,7 +100,7 @@ func TestCreate(t *testing.T) {
 	assert.NotEmpty(t, name)
 }
 
-func TestCreate_NoBody(t *testing.T) {
+func TestServerCreate_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -118,7 +118,7 @@ func TestCreate_NoBody(t *testing.T) {
 	assert.Equal(t, missingBody, string(b))
 }
 
-func TestCreate_InvalidBody(t *testing.T) {
+func TestServerCreate_InvalidBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -136,7 +136,7 @@ func TestCreate_InvalidBody(t *testing.T) {
 	assert.Equal(t, invalidJSON, string(b))
 }
 
-func TestSet(t *testing.T) {
+func TestServerSet(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -155,7 +155,7 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, body, string(respBody))
 }
 
-func TestSet_NoBody(t *testing.T) {
+func TestServerSet_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -173,7 +173,7 @@ func TestSet_NoBody(t *testing.T) {
 	assert.Equal(t, missingBody, string(b))
 }
 
-func TestSet_InvalidBody(t *testing.T) {
+func TestServerSet_InvalidBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -191,7 +191,7 @@ func TestSet_InvalidBody(t *testing.T) {
 	assert.Equal(t, invalidJSON, string(b))
 }
 
-func TestDel(t *testing.T) {
+func TestServerDel(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -212,7 +212,7 @@ func TestDel(t *testing.T) {
 	assert.Nil(t, n)
 }
 
-func TestUpdate(t *testing.T) {
+func TestServerUpdate(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -239,7 +239,7 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, newVal, string(respBody))
 }
 
-func TestUpdate_NoBody(t *testing.T) {
+func TestServerUpdate_NoBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -257,7 +257,7 @@ func TestUpdate_NoBody(t *testing.T) {
 	assert.Equal(t, missingBody, string(b))
 }
 
-func TestUpdate_InvalidBody(t *testing.T) {
+func TestServerUpdate_InvalidBody(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
@@ -275,7 +275,7 @@ func TestUpdate_InvalidBody(t *testing.T) {
 	assert.Equal(t, invalidJSON, string(b))
 }
 
-func TestGet(t *testing.T) {
+func TestServerGet(t *testing.T) {
 	// ARRANGE
 	ft := New()
 	ft.Start()
