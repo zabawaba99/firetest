@@ -17,14 +17,14 @@ func unmarshal(w http.ResponseWriter, r io.Reader) ([]byte, interface{}, bool) {
 	body, err := ioutil.ReadAll(r)
 	if err != nil || len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(missingBody))
+		w.Write(missingBody)
 		return nil, nil, false
 	}
 
 	var v interface{}
 	if err := json.Unmarshal(body, &v); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(invalidJSON))
+		w.Write(invalidJSON)
 		return nil, nil, false
 	}
 	return body, v, true

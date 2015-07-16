@@ -71,9 +71,43 @@ func TestServeHTTP_MissingJSON(t *testing.T) {
 
 	// ASSERT
 	assert.Equal(t, http.StatusForbidden, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, missingJSONExtension, string(b))
+	assert.Equal(t, missingJSONExtension, resp.Body.Bytes())
+}
+
+func TestServerInvalidBody(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	ft.Start()
+
+	for _, method := range []string{"PATCH", "POST", "PUT"} {
+		// ACT
+		req, err := http.NewRequest(method, ft.URL+"/.json", strings.NewReader("{asd}"))
+		require.NoError(t, err)
+		resp := httptest.NewRecorder()
+		ft.serveHTTP(resp, req)
+
+		// ASSERT
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Equal(t, invalidJSON, resp.Body.Bytes())
+	}
+}
+
+func TestServerMissingBody(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	ft.Start()
+
+	for _, method := range []string{"PATCH", "POST", "PUT"} {
+		// ACT
+		req, err := http.NewRequest(method, ft.URL+"/.json", bytes.NewReader(nil))
+		require.NoError(t, err)
+		resp := httptest.NewRecorder()
+		ft.serveHTTP(resp, req)
+
+		// ASSERT
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Equal(t, missingBody, resp.Body.Bytes())
+	}
 }
 
 func TestServerCreate(t *testing.T) {
@@ -100,42 +134,6 @@ func TestServerCreate(t *testing.T) {
 	assert.NotEmpty(t, name)
 }
 
-func TestServerCreate_NoBody(t *testing.T) {
-	// ARRANGE
-	ft := New()
-	ft.Start()
-
-	// ACT
-	req, err := http.NewRequest("POST", ft.URL+"/foo.json", bytes.NewReader(nil))
-	require.NoError(t, err)
-	resp := httptest.NewRecorder()
-	ft.serveHTTP(resp, req)
-
-	// ASSERT
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, missingBody, string(b))
-}
-
-func TestServerCreate_InvalidBody(t *testing.T) {
-	// ARRANGE
-	ft := New()
-	ft.Start()
-
-	// ACT
-	req, err := http.NewRequest("POST", ft.URL+"/foo.json", strings.NewReader("{asd}"))
-	require.NoError(t, err)
-	resp := httptest.NewRecorder()
-	ft.serveHTTP(resp, req)
-
-	// ASSERT
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, invalidJSON, string(b))
-}
-
 func TestServerSet(t *testing.T) {
 	// ARRANGE
 	ft := New()
@@ -153,42 +151,6 @@ func TestServerSet(t *testing.T) {
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, body, string(respBody))
-}
-
-func TestServerSet_NoBody(t *testing.T) {
-	// ARRANGE
-	ft := New()
-	ft.Start()
-
-	// ACT
-	req, err := http.NewRequest("PUT", ft.URL+"/.json", bytes.NewReader(nil))
-	require.NoError(t, err)
-	resp := httptest.NewRecorder()
-	ft.serveHTTP(resp, req)
-
-	// ASSERT
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, missingBody, string(b))
-}
-
-func TestServerSet_InvalidBody(t *testing.T) {
-	// ARRANGE
-	ft := New()
-	ft.Start()
-
-	// ACT
-	req, err := http.NewRequest("PUT", ft.URL+"/.json", strings.NewReader("{asd}"))
-	require.NoError(t, err)
-	resp := httptest.NewRecorder()
-	ft.serveHTTP(resp, req)
-
-	// ASSERT
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, invalidJSON, string(b))
 }
 
 func TestServerDel(t *testing.T) {
@@ -237,42 +199,6 @@ func TestServerUpdate(t *testing.T) {
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, newVal, string(respBody))
-}
-
-func TestServerUpdate_NoBody(t *testing.T) {
-	// ARRANGE
-	ft := New()
-	ft.Start()
-
-	// ACT
-	req, err := http.NewRequest("PATCH", ft.URL+"/.json", bytes.NewReader(nil))
-	require.NoError(t, err)
-	resp := httptest.NewRecorder()
-	ft.serveHTTP(resp, req)
-
-	// ASSERT
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, missingBody, string(b))
-}
-
-func TestServerUpdate_InvalidBody(t *testing.T) {
-	// ARRANGE
-	ft := New()
-	ft.Start()
-
-	// ACT
-	req, err := http.NewRequest("PATCH", ft.URL+"/.json", strings.NewReader("{asd}"))
-	require.NoError(t, err)
-	resp := httptest.NewRecorder()
-	ft.serveHTTP(resp, req)
-
-	// ASSERT
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	b, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	assert.Equal(t, invalidJSON, string(b))
 }
 
 func TestServerGet(t *testing.T) {

@@ -13,10 +13,10 @@ import (
 	"strings"
 )
 
-const (
-	missingJSONExtension = "append .json to your request URI to use the REST API"
-	missingBody          = `{"error":"Error: No data supplied."}`
-	invalidJSON          = `{"error":"Invalid data; couldn't parse JSON object, array, or value. Perhaps you're using invalid characters in your key names."}`
+var (
+	missingJSONExtension = []byte("append .json to your request URI to use the REST API")
+	missingBody          = []byte(`{"error":"Error: No data supplied."}`)
+	invalidJSON          = []byte(`{"error":"Invalid data; couldn't parse JSON object, array, or value. Perhaps you're using invalid characters in your key names."}`)
 )
 
 // Firetest is a Firebase server implementation
