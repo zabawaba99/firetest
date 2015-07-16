@@ -7,7 +7,6 @@ package firetest
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -34,11 +33,6 @@ func New() *Firetest {
 	return &Firetest{
 		db: newTree(),
 	}
-}
-
-func sanitizePath(p string) string {
-	s := strings.Trim(p, "/")
-	return strings.TrimSuffix(s, ".json")
 }
 
 // Start starts the server
@@ -96,17 +90,8 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil || len(body) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(missingBody))
-		return
-	}
-
-	var v interface{}
-	if err := json.Unmarshal(body, &v); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(invalidJSON))
+	body, v, ok := unmarshal(w, req.Body)
+	if !ok {
 		return
 	}
 
@@ -115,17 +100,8 @@ func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
 }
 
 func (ft *Firetest) update(w http.ResponseWriter, req *http.Request) {
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil || len(body) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(missingBody))
-		return
-	}
-
-	var v interface{}
-	if err := json.Unmarshal(body, &v); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(invalidJSON))
+	body, v, ok := unmarshal(w, req.Body)
+	if !ok {
 		return
 	}
 	ft.Update(req.URL.Path, v)
@@ -133,17 +109,8 @@ func (ft *Firetest) update(w http.ResponseWriter, req *http.Request) {
 }
 
 func (ft *Firetest) create(w http.ResponseWriter, req *http.Request) {
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil || len(body) == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(missingBody))
-		return
-	}
-
-	var v interface{}
-	if err := json.Unmarshal(body, &v); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(invalidJSON))
+	_, v, ok := unmarshal(w, req.Body)
+	if !ok {
 		return
 	}
 

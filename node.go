@@ -45,15 +45,6 @@ func newNode(data interface{}) *node {
 	return n
 }
 
-func (n *node) UnmarshalJSON(b []byte) error {
-	var v interface{}
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (n *node) MarshalJSON() ([]byte, error) {
 	return json.Marshal(n.objectify())
 }
