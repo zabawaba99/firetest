@@ -5,6 +5,8 @@ Package firetest provides utilities for Firebase testing
 package firetest
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -84,7 +86,7 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 		authHeader := req.URL.Query().Get("auth")
 		switch {
 		case strings.Contains(authHeader, "."):
-			// JWT
+			authenticated = ft.validJWT(authHeader)
 		default:
 			authenticated = authHeader == ft.Secret
 		}
@@ -111,6 +113,90 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		log.Println("not implemented yet")
 	}
+}
+
+func decodeSegment(seg string) ([]byte, error) {
+	if l := len(seg) % 4; l > 0 {
+		seg += strings.Repeat("=", 4-l)
+	}
+
+	return base64.URLEncoding.DecodeString(seg)
+}
+
+func (ft *Firetest) validJWT(val string) bool {
+	parts := strings.Split(val, ".")
+	if len(parts) != 3 {
+		return false
+	}
+
+	// validate header
+	hb, err := decodeSegment(parts[0])
+	if err != nil {
+		log.Println("error decoding header", err)
+		return false
+	}
+	var header map[string]string
+	if err := json.Unmarshal(hb, &header); err != nil {
+		log.Println("error unmarshaling header", err)
+		return false
+	}
+	if header["alg"] != "HS256" || header["typ"] != "JWT" {
+		return false
+	}
+
+	// validate claim
+	cb, err := decodeSegment(parts[1])
+	if err != nil {
+		log.Println("error decoding claim", err)
+		return false
+	}
+	var claim map[string]interface{}
+	if err := json.Unmarshal(cb, &claim); err != nil {
+		log.Println("error unmarshaling claim", err)
+		return false
+	}
+	if e, ok := claim["exp"]; ok {
+		// make sure not expired
+		exp, ok := e.(float64)
+		if !ok {
+			log.Println("expiration not a number")
+			return false
+		}
+		if int64(exp) < time.Now().Unix() {
+			log.Println("token expired")
+			return false
+		}
+	}
+	// ensure uid present
+	data, ok := claim["d"]
+	if !ok {
+		log.Println("missing data in claim")
+		return false
+	}
+
+	d, ok := data.(map[string]interface{})
+	if !ok {
+		log.Println("claim['data'] is not map")
+		return false
+	}
+
+	if _, ok := d["uid"]; !ok {
+		log.Println("claim['data'] missing uid")
+		return false
+	}
+
+	if sig, err := decodeSegment(parts[2]); err == nil {
+		hasher := hmac.New(sha256.New, []byte(ft.Secret))
+		signedString := strings.Join(parts[:2], ".")
+		hasher.Write([]byte(signedString))
+
+		if !hmac.Equal(sig, hasher.Sum(nil)) {
+			log.Println("invalid jwt signature")
+			return false
+		}
+	}
+
+	return true
 }
 
 func (ft *Firetest) set(w http.ResponseWriter, req *http.Request) {
