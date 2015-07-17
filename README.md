@@ -2,13 +2,32 @@
 
 Firebase test server meant for use in unit tests
 
-## Goals of this project
+**Note: This project is not meant to be used as a Firebase replacement
+nor to compete with Firebase. **
 
-* Provide a utility similar to [httptest](http://golang.org/pkg/net/http/httptest/)
-for the testing Firebase integration.
-* Replicate the Firebase REST/SSE APIs
-* This project is not meant to be used as a Firebase replacement
-nor to compete with Firebase.
+### Implemented
+
+* [Basic API Usage](https://www.firebase.com/docs/rest/api/#section-api-usage)
+  * POST
+  * GET
+  * PUT
+  * PATCH
+  * DELETE
+* [Query parameters](https://www.firebase.com/docs/rest/api/#section-query-parameters):
+  * auth
+
+### Not Supported
+
+* [Query parameters](https://www.firebase.com/docs/rest/api/#section-query-parameters):
+  * shallow
+  * print
+  * format
+  * download
+* [Streaming](https://www.firebase.com/docs/rest/api/#section-streaming)
+* [Priorities](https://www.firebase.com/docs/rest/api/#section-priorities)
+* [Server Values](https://www.firebase.com/docs/rest/api/#section-server-values)
+* [Security Rules](https://www.firebase.com/docs/rest/api/#section-security-rules)
+* [Error Conditions](https://www.firebase.com/docs/rest/api/#section-error-conditions)
 
 ## Contributing
 
