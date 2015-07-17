@@ -7,7 +7,9 @@ import (
 )
 
 func (ft *Firetest) RequireAuth(v bool) {
+	ft.authMtx.Lock()
 	ft.requireAuth = v
+	ft.authMtx.Unlock()
 }
 
 // Create generates a new child under the given location

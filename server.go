@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,8 +32,10 @@ type Firetest struct {
 	// Secret used to authenticate with server
 	Secret string
 
-	listener    net.Listener
-	db          *treeDB
+	listener net.Listener
+	db       *treeDB
+
+	authMtx     sync.RWMutex
 	requireAuth bool
 }
 
@@ -81,7 +84,10 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if ft.requireAuth {
+	ft.authMtx.RLock()
+	authenticate := ft.requireAuth
+	ft.authMtx.RUnlock()
+	if authenticate {
 		var authenticated bool
 		authHeader := req.URL.Query().Get("auth")
 		switch {
