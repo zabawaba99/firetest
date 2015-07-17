@@ -5,33 +5,40 @@ Package firetest provides utilities for Firebase testing
 package firetest
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
 	missingJSONExtension = []byte("append .json to your request URI to use the REST API")
 	missingBody          = []byte(`{"error":"Error: No data supplied."}`)
 	invalidJSON          = []byte(`{"error":"Invalid data; couldn't parse JSON object, array, or value. Perhaps you're using invalid characters in your key names."}`)
+	invalidAuth          = []byte(`{"error" : "Could not parse auth token."}`)
 )
 
 // Firetest is a Firebase server implementation
 type Firetest struct {
 	// URL of form http://ipaddr:port with no trailing slash
 	URL string
+	// Secret used to authenticate with server
+	Secret string
 
-	listener net.Listener
-	db       *treeDB
+	listener    net.Listener
+	db          *treeDB
+	requireAuth bool
 }
 
 // New creates a new Firetest server
 func New() *Firetest {
 	return &Firetest{
-		db: newTree(),
+		db:     newTree(),
+		Secret: base64.URLEncoding.EncodeToString([]byte(fmt.Sprint(time.Now().UnixNano()))),
 	}
 }
 
@@ -66,10 +73,27 @@ func (ft *Firetest) Close() {
 }
 
 func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
-	if !strings.HasSuffix(req.URL.String(), ".json") {
+	if !strings.HasSuffix(req.URL.Path, ".json") {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(missingJSONExtension))
 		return
+	}
+
+	if ft.requireAuth {
+		var authenticated bool
+		authHeader := req.URL.Query().Get("auth")
+		switch {
+		case strings.Contains(authHeader, "."):
+			// JWT
+		default:
+			authenticated = authHeader == ft.Secret
+		}
+
+		if !authenticated {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write(invalidAuth)
+			return
+		}
 	}
 
 	switch req.Method {

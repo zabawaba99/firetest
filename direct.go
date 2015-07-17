@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+func (ft *Firetest) RequireAuth(v bool) {
+	ft.requireAuth = v
+}
+
 // Create generates a new child under the given location
 // using a unique name and returns the name
 //

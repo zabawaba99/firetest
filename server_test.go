@@ -18,7 +18,8 @@ import (
 
 func TestNew(t *testing.T) {
 	ft := New()
-	assert.NotNil(t, ft)
+	require.NotNil(t, ft)
+	assert.NotEmpty(t, ft.Secret)
 }
 
 func TestURL(t *testing.T) {
@@ -108,6 +109,40 @@ func TestServerMissingBody(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.Code)
 		assert.Equal(t, missingBody, resp.Body.Bytes())
 	}
+}
+
+func TestServeHTTPAuth(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	ft.Start()
+	ft.RequireAuth(true)
+
+	// ACT
+	req, err := http.NewRequest("GET", ft.URL+"/.json?auth="+ft.Secret, nil)
+	require.NoError(t, err)
+
+	resp := httptest.NewRecorder()
+	ft.serveHTTP(resp, req)
+
+	// ASSERT
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestServeHTTPUnauthorized(t *testing.T) {
+	// ARRANGE
+	ft := New()
+	ft.Start()
+	ft.RequireAuth(true)
+
+	// ACT
+	req, err := http.NewRequest("GET", ft.URL+"/.json", nil)
+	require.NoError(t, err)
+	resp := httptest.NewRecorder()
+	ft.serveHTTP(resp, req)
+
+	// ASSERT
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+	assert.Equal(t, invalidAuth, resp.Body.Bytes())
 }
 
 func TestServerCreate(t *testing.T) {
