@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+// RequireAuth determines whether or not a Firetest server
+// will require that each request be authorized
 func (ft *Firetest) RequireAuth(v bool) {
 	ft.authMtx.Lock()
 	ft.requireAuth = v

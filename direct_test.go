@@ -7,6 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestRequireAuth(t *testing.T) {
+	for _, require := range []bool{true, false} {
+		ft := New()
+		ft.RequireAuth(require)
+		assert.Equal(t, require, ft.requireAuth)
+	}
+}
+
 func TestCreate(t *testing.T) {
 	var (
 		ft   = New()
