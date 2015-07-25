@@ -2,6 +2,7 @@ package firetest
 
 import (
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,11 @@ func TestRequireAuth(t *testing.T) {
 	for _, require := range []bool{true, false} {
 		ft := New()
 		ft.RequireAuth(require)
-		assert.Equal(t, require, ft.requireAuth)
+		var expected int32
+		if require {
+			expected = 1
+		}
+		assert.Equal(t, expected, atomic.LoadInt32(ft.requireAuth))
 	}
 }
 

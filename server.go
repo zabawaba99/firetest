@@ -14,7 +14,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -35,15 +35,15 @@ type Firetest struct {
 	listener net.Listener
 	db       *treeDB
 
-	authMtx     sync.RWMutex
-	requireAuth bool
+	requireAuth *int32
 }
 
 // New creates a new Firetest server
 func New() *Firetest {
 	return &Firetest{
-		db:     newTree(),
-		Secret: base64.URLEncoding.EncodeToString([]byte(fmt.Sprint(time.Now().UnixNano()))),
+		db:          newTree(),
+		Secret:      base64.URLEncoding.EncodeToString([]byte(fmt.Sprint(time.Now().UnixNano()))),
+		requireAuth: new(int32),
 	}
 }
 
@@ -84,10 +84,7 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ft.authMtx.RLock()
-	authenticate := ft.requireAuth
-	ft.authMtx.RUnlock()
-	if authenticate {
+	if atomic.LoadInt32(ft.requireAuth) == 1 {
 		var authenticated bool
 		authHeader := req.URL.Query().Get("auth")
 		switch {

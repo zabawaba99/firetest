@@ -3,15 +3,18 @@ package firetest
 import (
 	"encoding/base64"
 	"fmt"
+	"sync/atomic"
 	"time"
 )
 
 // RequireAuth determines whether or not a Firetest server
 // will require that each request be authorized
 func (ft *Firetest) RequireAuth(v bool) {
-	ft.authMtx.Lock()
-	ft.requireAuth = v
-	ft.authMtx.Unlock()
+	var val int32
+	if v {
+		val = 1
+	}
+	atomic.StoreInt32(ft.requireAuth, val)
 }
 
 // Create generates a new child under the given location
