@@ -24,8 +24,10 @@ func (ft *Firetest) RequireAuth(v bool) {
 func (ft *Firetest) Create(path string, v interface{}) string {
 	src := []byte(fmt.Sprint(time.Now().UnixNano()))
 	name := "~" + base64.StdEncoding.EncodeToString(src)
-	path = fmt.Sprintf("%s/%s", sanitizePath(path), name)
 
+	path = fmt.Sprintf("%s/%s", sanitizePath(path), name)
+	// sanitize one more time in case initial path was empty
+	path = sanitizePath(path)
 	ft.db.add(path, newNode(v))
 	return name
 }

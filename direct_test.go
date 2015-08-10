@@ -22,15 +22,17 @@ func TestRequireAuth(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var (
-		ft   = New()
-		path = "foo/bar"
-		v    = true
+		ft = New()
+		v  = true
 	)
-	name := ft.Create(path, v)
-	assert.True(t, strings.HasPrefix(name, "~"), "name is missing `~` prefix")
 
-	n := ft.db.get(path + "/" + name)
-	assert.Equal(t, v, n.value)
+	for _, p := range []string{"path/hi", ""} {
+		name := ft.Create(p, v)
+		assert.True(t, strings.HasPrefix(name, "~"), "name is missing `~` prefix")
+
+		n := ft.db.get(sanitizePath(p + "/" + name))
+		assert.Equal(t, v, n.value)
+	}
 }
 
 func TestDelete(t *testing.T) {
