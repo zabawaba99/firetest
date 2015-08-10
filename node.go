@@ -38,6 +38,8 @@ func newNode(data interface{}) *node {
 		}
 	case string, int, int8, int16, int32, int64, float32, float64, bool:
 		n.value = data
+	case nil:
+		// do nothing
 	default:
 		panic(fmt.Sprintf("Type(%T) not supported\n", data))
 	}
@@ -50,6 +52,10 @@ func (n *node) MarshalJSON() ([]byte, error) {
 }
 
 func (n *node) objectify() interface{} {
+	if n.isNil() {
+		return nil
+	}
+
 	if n.value != nil {
 		return n.value
 	}
@@ -70,7 +76,12 @@ func (n *node) objectify() interface{} {
 	for k, v := range n.children {
 		obj[k] = v.objectify()
 	}
+
 	return obj
+}
+
+func (n *node) isNil() bool {
+	return n.value == nil && len(n.children) == 0
 }
 
 func (n *node) merge(newNode *node) {

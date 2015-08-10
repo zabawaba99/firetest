@@ -153,6 +153,9 @@ func TestObjectify(t *testing.T) {
 		object interface{}
 	}{
 		{
+			name: "nil",
+		},
+		{
 			name:   "string",
 			object: "foo",
 		},
