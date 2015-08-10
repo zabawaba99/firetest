@@ -109,7 +109,12 @@ func (ft *Firetest) serveHTTP(w http.ResponseWriter, req *http.Request) {
 	case "POST":
 		ft.create(w, req)
 	case "GET":
-		ft.get(w, req)
+		switch req.Header.Get("Accept") {
+		case "text/event-stream":
+			ft.sse(w, req)
+		default:
+			ft.get(w, req)
+		}
 	case "DELETE":
 		ft.del(w, req)
 	default:
@@ -246,5 +251,52 @@ func (ft *Firetest) get(w http.ResponseWriter, req *http.Request) {
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		log.Printf("Error encoding json: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (ft *Firetest) sse(w http.ResponseWriter, req *http.Request) {
+	f, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming is not supported", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+
+	path := sanitizePath(req.URL.Path)
+	c := ft.db.watch(path)
+	defer ft.db.stopWatching(path, c)
+
+	d := eventData{Path: path, Data: ft.db.get(path)}
+	s, err := json.Marshal(d)
+	if err != nil {
+		fmt.Printf("Error marshaling node %s\n", err)
+	}
+	fmt.Fprintf(w, "event: put\ndata: %s\n\n", s)
+	f.Flush()
+
+	httpCloser := w.(http.CloseNotifier).CloseNotify()
+	for {
+		select {
+		case <-httpCloser:
+			return
+		case <-time.After(30 * time.Second):
+			fmt.Fprintf(w, "event: keep-alive\ndata: null")
+			f.Flush()
+			continue
+		case n, ok := <-c:
+			if !ok {
+				return
+			}
+
+			s, err := json.Marshal(n.Data)
+			if err != nil {
+				fmt.Printf("Error marshaling node %s\n", err)
+				continue
+			}
+
+			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", n.Name, s)
+			f.Flush()
+		}
 	}
 }

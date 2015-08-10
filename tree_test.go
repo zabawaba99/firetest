@@ -1,8 +1,10 @@
 package firetest
 
 import (
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,6 +25,19 @@ func TestTreeAdd(t *testing.T) {
 		},
 	} {
 		tree := newTree()
+
+		// listen for notifications
+		notifications := tree.watch(test.path)
+		exited := make(chan struct{})
+		go func() {
+			n, ok := <-notifications
+			assert.True(t, ok)
+			assert.Equal(t, "put", n.Name)
+			assert.Equal(t, test.path, n.Data.Path)
+			assert.Equal(t, test.node, n.Data.Data)
+			close(exited)
+		}()
+
 		tree.add(test.path, test.node)
 
 		rabbitHole := strings.Split(test.path, "/")
@@ -30,10 +45,15 @@ func TestTreeAdd(t *testing.T) {
 		for i := 0; i < len(rabbitHole); i++ {
 			var ok bool
 			previous, ok = previous.children[rabbitHole[i]]
-			require.True(t, ok, test.path)
+			assert.True(t, ok, test.path)
 		}
 
 		assert.NoError(t, equalNodes(test.node, previous), test.path)
+		select {
+		case <-exited:
+		case <-time.After(250 * time.Millisecond):
+		}
+		tree.stopWatching(test.path, notifications)
 	}
 }
 
@@ -69,6 +89,23 @@ func TestTreeDel(t *testing.T) {
 		tree.add(p, newNode(1))
 	}
 
+	// listen for notifications
+	notifications := tree.watch("")
+	exited := make(chan struct{})
+	go func() {
+		regex := regexp.MustCompile("(root/only/one/child|root)")
+		n, ok := <-notifications
+		assert.True(t, ok)
+		assert.Equal(t, "put", n.Name)
+		assert.Regexp(t, regex, n.Data.Path)
+
+		n, ok = <-notifications
+		assert.True(t, ok)
+		assert.Equal(t, "put", n.Name)
+		assert.Regexp(t, regex, n.Data.Path)
+		close(exited)
+	}()
+
 	tree.del("root/only/one/child")
 	assert.Nil(t, tree.get("root/only/one/child/here"))
 	assert.Nil(t, tree.get("root/only/one/child"))
@@ -83,4 +120,10 @@ func TestTreeDel(t *testing.T) {
 	n = tree.get("")
 	require.NotNil(t, n)
 	assert.Len(t, n.children, 0)
+
+	select {
+	case <-exited:
+	case <-time.After(250 * time.Millisecond):
+	}
+	tree.stopWatching("", notifications)
 }
