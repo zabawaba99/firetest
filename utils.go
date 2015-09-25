@@ -9,8 +9,17 @@ import (
 )
 
 func sanitizePath(p string) string {
+	// remove slashes from the front and back
+	//	/foo/.json -> foo/.json
 	s := strings.Trim(p, "/")
-	return strings.TrimSuffix(s, ".json")
+
+	// remove .json extension
+	//	foo/.json -> foo/
+	s = strings.TrimSuffix(s, ".json")
+
+	// trim an potential trailing slashes
+	//	foo/ -> foo
+	return strings.TrimSuffix(s, "/")
 }
 
 func unmarshal(w http.ResponseWriter, r io.Reader) ([]byte, interface{}, bool) {

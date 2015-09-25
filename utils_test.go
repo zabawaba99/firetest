@@ -20,6 +20,7 @@ func TestSanitizePath(t *testing.T) {
 		{"foo/", "foo"},
 		{"/foo", "foo"},
 		{"/foo/", "foo"},
+		{"/foo/.json", "foo"}, // issue #6
 	} {
 		assert.Equal(t, test.expected, sanitizePath(test.path), "%d", i)
 	}
