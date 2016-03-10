@@ -15,6 +15,7 @@ nor to compete with Firebase. **
   * DELETE
 * [Query parameters](https://www.firebase.com/docs/rest/api/#section-query-parameters):
   * auth
+* [Streaming](https://www.firebase.com/docs/rest/api/#section-streaming)
 
 ### Not Supported
 
@@ -23,7 +24,6 @@ nor to compete with Firebase. **
   * print
   * format
   * download
-* [Streaming](https://www.firebase.com/docs/rest/api/#section-streaming)
 * [Priorities](https://www.firebase.com/docs/rest/api/#section-priorities)
 * [Server Values](https://www.firebase.com/docs/rest/api/#section-server-values)
 * [Security Rules](https://www.firebase.com/docs/rest/api/#section-security-rules)
