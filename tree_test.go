@@ -27,13 +27,13 @@ func TestTreeAdd(t *testing.T) {
 		tree := newTree()
 
 		// listen for notifications
-		notifications := tree.watch(test.path)
+		notifications := tree.watch("")
 		exited := make(chan struct{})
 		go func() {
 			n, ok := <-notifications
 			assert.True(t, ok)
 			assert.Equal(t, "put", n.Name)
-			assert.Equal(t, test.path, n.Data.Path)
+			assert.Equal(t, test.path, n.Data.Path, "wat?")
 			assert.Equal(t, test.node, n.Data.Data)
 			close(exited)
 		}()

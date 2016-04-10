@@ -103,6 +103,10 @@ func (tree *treeDB) update(path string, n *node) {
 }
 
 func (tree *treeDB) del(path string) {
+	defer func() {
+		go tree.notify(newEvent("put", path, nil))
+	}()
+
 	if path == "" {
 		tree.rootNode = &node{
 			children: map[string]*node{},
@@ -126,7 +130,7 @@ func (tree *treeDB) del(path string) {
 	}
 
 	endNode := current
-	leafPath := rabbitHole[len(rabbitHole)-1]
+	leafPath := rabbitHole[delIdx]
 	delete(endNode.children, leafPath)
 
 	for tmp := endNode.prune(); tmp != nil; tmp = tmp.prune() {
@@ -137,8 +141,6 @@ func (tree *treeDB) del(path string) {
 	if endNode != nil {
 		delete(endNode.children, rabbitHole[delIdx])
 	}
-
-	go tree.notify(newEvent("put", path, nil))
 }
 
 func (tree *treeDB) get(path string) *node {
@@ -164,6 +166,11 @@ func (tree *treeDB) notify(e event) {
 		if !strings.HasPrefix(e.Data.Path, path) {
 			continue
 		}
+
+		// Make sure to not return full path when notifying
+		// only return the path relative to the watcher
+		e.Data.Path = strings.TrimPrefix(e.Data.Path, path)
+		e.Data.Path = sanitizePath(e.Data.Path)
 
 		for _, c := range listeners {
 			select {
