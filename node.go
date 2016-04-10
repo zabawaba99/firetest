@@ -95,7 +95,6 @@ func (n *node) prune() *node {
 	if len(n.children) > 0 || n.value != nil {
 		return nil
 	}
-	n.children = nil
 
 	parent := n.parent
 	n.parent = nil
